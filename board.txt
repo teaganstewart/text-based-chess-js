@@ -1,6 +1,3 @@
-// starting board - logic.js needs to read the file. (or use a separate js file - 
-not sure how to do that though I think I have before..... [could create an object])
-
 |     R     |     N     |     B     |     Q     |     K     |     B     |     N     |     R     |           
 ----------------------------------------------------------
 |     P     |     P     |     P     |     P     |     P     |     P     |     P     |     P     |           
