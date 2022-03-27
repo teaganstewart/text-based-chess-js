@@ -3,6 +3,15 @@
  * 
 */
 
+const STARTUPMESSAGE = "Welcome to Text Based Chess. \nAll code was written in Javascript.\n\n" +
+    "HOW TO PLAY: \nGrab a mate and come play some chess, the world's favourite classic board game!\n\n" +
+    "*PLEASE NOTE THIS GAME DOESN'T USE PROPER CHESS NOTATION YET*\n\n" +
+    "Input format: a3-a5.\n" +
+    "The letter represents the column you are in; A-H from left to right.\n\n\n" +
+    "And remember.... have fun!!\n\n"
+
+let roundCount = 0;
+
 //===================================================
 //================ BOARD CLASS ======================
 //===================================================
@@ -12,6 +21,7 @@ class Board {
     boardArray = [[]];
 
     /**
+     * Parses the board file into the board array.
      * 
      * @param {*} boardFile 
      */
@@ -20,18 +30,18 @@ class Board {
 
         // Reads only the piece data of the board - not the design parts (|'s and -'s)
         for (let i = 0; i < 8; i++) {
-            // let cols = rows[i].split("     |     ")
-            // cols[0] = cols[0].split("|     ")[1];
             let cols = rows[i].split(" ");
 
             // Add pieces to the board
             this.boardArray[i] = []
             for (let j = 0; j < 8; j++) {
                 // if piece is upper case - orange, if lower case - white
-                this.boardArray[i].push(new Piece((cols[j] == "_") ? " " : cols[j], (cols[j] == cols[j].toUpperCase()) ? "orange" : "white"));
+                this.boardArray[i].push(new Piece((cols[j] == "_") ? " " : cols[j], (cols[j] == cols[j].toUpperCase())
+                    ? "orange" : "white"));
 
             }
         }
+
     }
 
     /**
@@ -44,7 +54,6 @@ class Board {
         var rawFile = new XMLHttpRequest();
         rawFile.open("GET", "board.txt", false);
 
-        let fuck = "";
         rawFile.onreadystatechange = function () {
             if (rawFile.readyState === 4) {
                 if (rawFile.status === 200 || rawFile.status == 0) {
@@ -55,6 +64,17 @@ class Board {
         }
 
         rawFile.send(null);
+    }
+
+    /**
+     * Parses the moves then updates and prints the board.
+     * 
+     * @param {The validated and converted move coordinates} moveArray 
+     */
+    parseMove(moveArray) {
+        this.boardArray[moveArray[2]][moveArray[3]].setValue = this.boardArray[moveArray[0]][moveArray[1]].getValue;
+        this.boardArray[moveArray[0]][moveArray[1]].setValue = " ";
+        printBoard();
     }
 }
 
@@ -90,6 +110,10 @@ class Piece {
         return this.value;
     }
 
+    set setValue(newVal) {
+        this.value = newVal;
+    }
+
     get getStyle() {
         if (this.color == "white") {
             return this.whiteStyle;
@@ -108,21 +132,69 @@ class Piece {
 //============== BOARD FUNCTIONS ====================
 //===================================================
 
+/**
+ * Pre-loads the board file.
+ */
 function createBoard() {
     board.loadBoard();
 
 }
 
+/**
+ * Parses the board file then starts the game.
+ * 
+ * @param {The text file containing the board} boardFile 
+ */
 function parseBoard(boardFile) {
     board.fileParser(boardFile);
     printBoard();
+    playGame();
+
+}
+
+/**
+ * The game loop - playing state.
+ */
+function playGame() {
+
+    let move = ""
+
+    while (move != "quit") {
+        move = prompt("Please make a move: ")
+        if (checkValidInput(move) != null) board.parseMove(checkValidInput(move));
+    }
 }
 
 
+/**
+ * Validates whether the input is a valid move or not.
+ * 
+ * @param {The users move input} move 
+ * @returns 
+ */
+function checkValidInput(move) {
+    if (move.length != 5) return;
 
+    const moveArray = [...move];
+    let coordArray = [moveArray[1] - 1, moveArray[0].charCodeAt(0) - 97, moveArray[4] - 1, moveArray[3].charCodeAt(0) - 97]
+    for (let coord in coordArray) {
+        if (coord < 0 || coord > 7) {
+            console.log("Invalid input. Please follow format a1-h8. Col values: a - h, row values: 1 - 8")
+            return null;
+        }
+    }
+
+    return (moveArray[2] == "-") ? coordArray : null;
+}
+
+
+/**
+ * A function to print the board in a stylized way.
+ */
 function printBoard() {
 
-    let normalStyle = 'font-weight: normal, font-size 20px; color: lightgrey;'
+    console.log("\n\n\n")
+    let normalStyle = 'color: lightgrey;'
     // let whiteStyle = 'font-weight: bold; font-size: 20px;color: white;';
     // let blackStyle = 'font-weight: bold; font-size: 20px;color: orange;';
     // let normalStyle = 'font-weight: normal, font-size 12px; color: lightgrey;'
@@ -130,8 +202,6 @@ function printBoard() {
     // let string = [whiteStyle, blackStyle, whiteStyle, blackStyle, whiteStyle, blackStyle, whiteStyle, whiteStyle]
     // console.log("%c%s %c%s %c%s %c%s %c%s %c%s %c%s %c%s", string[0], "R", string[1], "R", string[2], "R", string[3], "R",
     //     string[4], "R", string[5], "R", string[6], "R", string[7], "R");
-
-
 
     for (var i = 0; i < 8; i++) {
         let colours = [];
@@ -155,11 +225,13 @@ function printBoard() {
 }
 
 
-// actual code
-
+// starting code
 let board = new Board();
+setTimeout(function () { //allows the html to load first
+    console.log(STARTUPMESSAGE);
+    createBoard();
+}, 200)
 
-createBoard();
 
 
 // console.log("----------------------------------------------------------");
